@@ -2,6 +2,7 @@ package ocr
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/kofj/baiduai-sdk-go"
 	"github.com/kofj/baiduai-sdk-go/vision"
@@ -38,16 +39,16 @@ const (
 	OcrBusinessLicenseURL = "https://aip.baidubce.com/rest/2.0/ocr/v1/business_license"
 )
 
-func parseRequestParam(image *vision.Image, params ...RequestParam) (def map[string]string) {
-	def = make(map[string]string)
+func parseRequestParam(image *vision.Image, params ...RequestParam) (r *url.Values) {
+	r = &url.Values{}
 	for _, fn := range params {
-		fn(def)
+		fn(r)
 	}
 
 	if image.URL != "" {
-		def["url"] = image.URL
+		r.Set("url", image.URL)
 	} else {
-		def["image"] = image.Data
+		r.Set("image", image.Data)
 	}
 	return
 }
