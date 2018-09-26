@@ -1,12 +1,12 @@
 package ocr
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 
 	"github.com/kofj/baiduai-sdk-go"
 	"github.com/kofj/baiduai-sdk-go/vision"
-	"github.com/mozillazg/request"
 )
 
 const (
@@ -65,23 +65,24 @@ func New(authorizer sdk.Authorizer) *Client {
 	}
 }
 
-func (c *Client) doRequest(api string, img *vision.Image, params ...RequestParam) (*Resp, error) {
+func (c *Client) doRequest(api string, img *vision.Image, r interface{}, params ...RequestParam) (err error) {
 	token, err := c.Authorizer.Token()
 	if err != nil {
-		return nil, err
+		return
 	}
 	api += "?access_token=" + token
 
 	hc := &http.Client{}
-	req := request.NewRequest(hc)
-	resp, err := req.PostForm(api, parseRequestParam(img, params...))
 
+	resp, err := hc.PostForm(api, *parseRequestParam(img, params...))
 	if err != nil {
-		return nil, err
+		return
 	}
+	defer resp.Body.Close()
 
-	bytes, err := resp.Content()
-	return &Resp{bytes}, err
+	// var i interface{}
+	err = json.NewDecoder(resp.Body).Decode(r)
+	return
 }
 
 // GeneralBasic ...
