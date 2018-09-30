@@ -1,16 +1,28 @@
 package sdk
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
-
-	"github.com/mozillazg/request"
 )
 
 // AuthURL Access Token 地址
 const AuthURL = "https://aip.baidubce.com/oauth/2.0/token"
+
+// AuthResp 认证 API 响应
+type AuthResp struct {
+	RefreshToken     string `json:"refresh_token"`
+	ExpiresIn        int    `json:"expires_in"`
+	Scope            string `json:"scope"`
+	SessionKey       string `json:"session_key"`
+	AccessToken      string `json:"access_token"`
+	SessionSecret    string `json:"session_secret"`
+	Error            string `json:"error,omitempty"`
+	ErrorDescription string `json:"error_description,omitempty"`
+}
 
 // Authorizer 用于设置 AccessToken
 // 可以通过 RESTful api的方式从百度方获取
@@ -40,33 +52,34 @@ func (d *DefaultAuthorizer) isExpired() bool {
 func (d *DefaultAuthorizer) Auth() (err error) {
 	c := &http.Client{}
 
-	req := request.NewRequest(c)
-	req.Data = map[string]string{
-		"grant_type":    "client_credentials",
-		"client_id":     d.clientID,
-		"client_secret": d.clientSecret,
+	var params = url.Values{}
+	params.Add("grant_type", "client_credentials")
+	params.Add("client_id", d.clientID)
+	params.Add("client_secret", d.clientSecret)
+
+	resp, err := c.PostForm(AuthURL, params)
+	if err != nil {
+		return
 	}
-	resp, err := req.Post(AuthURL)
+	defer resp.Body.Close()
+
+	var data = &AuthResp{}
+	err = json.NewDecoder(resp.Body).Decode(data)
 	if err != nil {
 		return
 	}
 
-	data, err := resp.Json()
-	if err != nil {
-		return
+	if data.Error != "" {
+		return errors.New("API Error:" + data.Error)
 	}
 
-	if data.Get("error").MustString() != "" {
-		return errors.New("API Error:" + data.Get("error").MustString())
-	}
-
-	var expire = data.Get("expires_in").MustInt()
+	var expire = data.ExpiresIn
 	if expire == 0 {
 		expire = 2592000
 	}
 
 	d.locker.Lock()
-	d.accessToken = data.Get("access_token").MustString()
+	d.accessToken = data.AccessToken
 	d.expireAt = time.Now().Add(time.Duration(expire) * time.Second)
 	d.locker.Unlock()
 
