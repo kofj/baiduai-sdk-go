@@ -2,6 +2,7 @@ package ocr
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -65,7 +66,7 @@ func New(authorizer sdk.Authorizer) *Client {
 	}
 }
 
-func (c *Client) doRequest(api string, img *vision.Image, r interface{}, params ...RequestParam) (err error) {
+func (c *Client) doRequest(api string, img *vision.Image, r interface{}, params ...RequestParam) (buf json.RawMessage, err error) {
 	token, err := c.Authorizer.Token()
 	if err != nil {
 		return
@@ -80,22 +81,37 @@ func (c *Client) doRequest(api string, img *vision.Image, r interface{}, params 
 	}
 	defer resp.Body.Close()
 
-	// var i interface{}
-	err = json.NewDecoder(resp.Body).Decode(r)
+	buf, err = ioutil.ReadAll(resp.Body)
+
+	err = json.Unmarshal(buf, r)
 	return
 }
 
 // GeneralBasic ...
 func (c *Client) GeneralBasic(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrGeneralBasicURL, img, resp, params...)
+	_, err = c.doRequest(OcrGeneralBasicURL, img, resp, params...)
+	return
+}
+
+// GeneralBasicWithRaw 只解析错误信息
+func (c *Client) GeneralBasicWithRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrGeneralBasicURL, img, resp, params...)
 	return
 }
 
 // General ...
 func (c *Client) General(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrGeneralURL, img, resp, params...)
+	_, err = c.doRequest(OcrGeneralURL, img, resp, params...)
+	return
+}
+
+// GeneralRaw 只解析错误信息
+func (c *Client) GeneralRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrGeneralURL, img, resp, params...)
 
 	return
 }
@@ -103,7 +119,15 @@ func (c *Client) General(img *vision.Image, params ...RequestParam) (resp *Gener
 // Accurate ...
 func (c *Client) Accurate(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrAccurateURL, img, resp, params...)
+	_, err = c.doRequest(OcrAccurateURL, img, resp, params...)
+
+	return
+}
+
+// AccurateRaw 只解析错误信息
+func (c *Client) AccurateRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrAccurateURL, img, resp, params...)
 
 	return
 }
@@ -111,7 +135,15 @@ func (c *Client) Accurate(img *vision.Image, params ...RequestParam) (resp *Gene
 // GeneralEnhanced ...
 func (c *Client) GeneralEnhanced(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrGeneralEnhancedURL, img, resp, params...)
+	_, err = c.doRequest(OcrGeneralEnhancedURL, img, resp, params...)
+
+	return
+}
+
+// GeneralEnhancedRaw 只解析错误信息
+func (c *Client) GeneralEnhancedRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrGeneralEnhancedURL, img, resp, params...)
 
 	return
 }
@@ -119,7 +151,15 @@ func (c *Client) GeneralEnhanced(img *vision.Image, params ...RequestParam) (res
 // Webimage ...
 func (c *Client) Webimage(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrWebimageURL, img, resp, params...)
+	_, err = c.doRequest(OcrWebimageURL, img, resp, params...)
+
+	return
+}
+
+// WebimageRaw 只解析错误信息
+func (c *Client) WebimageRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrWebimageURL, img, resp, params...)
 
 	return
 }
@@ -127,7 +167,15 @@ func (c *Client) Webimage(img *vision.Image, params ...RequestParam) (resp *Gene
 // Handwriting ...
 func (c *Client) Handwriting(img *vision.Image, params ...RequestParam) (resp *GeneralResp, err error) {
 	resp = &GeneralResp{}
-	err = c.doRequest(OcrHandwritingURL, img, resp, params...)
+	_, err = c.doRequest(OcrHandwritingURL, img, resp, params...)
+
+	return
+}
+
+// HandwritingRaw 只解析错误信息
+func (c *Client) HandwritingRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrHandwritingURL, img, resp, params...)
 
 	return
 }
@@ -135,7 +183,15 @@ func (c *Client) Handwriting(img *vision.Image, params ...RequestParam) (resp *G
 // Idcard ...
 func (c *Client) Idcard(img *vision.Image, params ...RequestParam) (resp *IdcardResp, err error) {
 	resp = &IdcardResp{}
-	err = c.doRequest(OcrIdcardURL, img, resp, params...)
+	_, err = c.doRequest(OcrIdcardURL, img, resp, params...)
+
+	return
+}
+
+// IdcardRaw 只解析错误信息
+func (c *Client) IdcardRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrIdcardURL, img, resp, params...)
 
 	return
 }
@@ -143,7 +199,15 @@ func (c *Client) Idcard(img *vision.Image, params ...RequestParam) (resp *Idcard
 // Bankcard ...
 func (c *Client) Bankcard(img *vision.Image, params ...RequestParam) (resp *BankcardResp, err error) {
 	resp = &BankcardResp{}
-	err = c.doRequest(OcrBankcardURL, img, resp, params...)
+	_, err = c.doRequest(OcrBankcardURL, img, resp, params...)
+
+	return
+}
+
+// BankcardRaw 只解析错误信息
+func (c *Client) BankcardRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp, raw json.RawMessage, err error) {
+	resp = &ErrorResp{}
+	raw, err = c.doRequest(OcrBankcardURL, img, resp, params...)
 
 	return
 }
@@ -151,7 +215,15 @@ func (c *Client) Bankcard(img *vision.Image, params ...RequestParam) (resp *Bank
 // DrivingLicense ...
 func (c *Client) DrivingLicense(img *vision.Image, params ...RequestParam) (resp *DrivingLicenseResp, err error) {
 	resp = &DrivingLicenseResp{}
-	err = c.doRequest(OcrDrivingLicenseURL, img, resp, params...)
+	_, err = c.doRequest(OcrDrivingLicenseURL, img, resp, params...)
+
+	return
+}
+
+// DrivingLicenseRaw 只解析错误信息，ErrorResp2
+func (c *Client) DrivingLicenseRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp2, raw json.RawMessage, err error) {
+	resp = &ErrorResp2{}
+	raw, err = c.doRequest(OcrDrivingLicenseURL, img, resp, params...)
 
 	return
 }
@@ -159,7 +231,15 @@ func (c *Client) DrivingLicense(img *vision.Image, params ...RequestParam) (resp
 // VehiclLicense ...
 func (c *Client) VehiclLicense(img *vision.Image, params ...RequestParam) (resp *VehiclLicenseResp, err error) {
 	resp = &VehiclLicenseResp{}
-	err = c.doRequest(OcrVehiclLicenseURL, img, resp, params...)
+	_, err = c.doRequest(OcrVehiclLicenseURL, img, resp, params...)
+
+	return
+}
+
+// VehiclLicenseRaw 只解析错误信息，ErrorResp2
+func (c *Client) VehiclLicenseRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp2, raw json.RawMessage, err error) {
+	resp = &ErrorResp2{}
+	raw, err = c.doRequest(OcrVehiclLicenseURL, img, resp, params...)
 
 	return
 }
@@ -167,7 +247,15 @@ func (c *Client) VehiclLicense(img *vision.Image, params ...RequestParam) (resp 
 // LicensePlate ...
 func (c *Client) LicensePlate(img *vision.Image, params ...RequestParam) (resp *LicensePlateResp, err error) {
 	resp = &LicensePlateResp{}
-	err = c.doRequest(OcrLicensePlateURL, img, resp, params...)
+	_, err = c.doRequest(OcrLicensePlateURL, img, resp, params...)
+
+	return
+}
+
+// LicensePlateRaw 只解析错误信息，ErrorResp2
+func (c *Client) LicensePlateRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp2, raw json.RawMessage, err error) {
+	resp = &ErrorResp2{}
+	raw, err = c.doRequest(OcrLicensePlateURL, img, resp, params...)
 
 	return
 }
@@ -175,7 +263,15 @@ func (c *Client) LicensePlate(img *vision.Image, params ...RequestParam) (resp *
 // BusinessLicense ...
 func (c *Client) BusinessLicense(img *vision.Image, params ...RequestParam) (resp *BusinessLicenseResp, err error) {
 	resp = &BusinessLicenseResp{}
-	err = c.doRequest(OcrBusinessLicenseURL, img, resp, params...)
+	_, err = c.doRequest(OcrBusinessLicenseURL, img, resp, params...)
+
+	return
+}
+
+// BusinessLicenseRaw 只解析错误信息，ErrorResp2
+func (c *Client) BusinessLicenseRaw(img *vision.Image, params ...RequestParam) (resp *ErrorResp2, raw json.RawMessage, err error) {
+	resp = &ErrorResp2{}
+	raw, err = c.doRequest(OcrBusinessLicenseURL, img, resp, params...)
 
 	return
 }

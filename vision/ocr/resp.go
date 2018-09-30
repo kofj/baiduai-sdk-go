@@ -1,5 +1,17 @@
 package ocr
 
+// ErrorResp 错误信息
+type ErrorResp struct {
+	ErrorCode int    `json:"error_code,omitempty"`
+	ErrorMsg  string `json:"error_msg,omitempty"`
+}
+
+// ErrorResp2 错误信息2, 驾驶证识别/行驶证识别/车牌识别/名片识别/火车票识别等接口
+type ErrorResp2 struct {
+	Errno int    `json:"errno,omitempty"`
+	Msg   string `json:"msg,omitempty"`
+}
+
 // GeneralResp 通用响应
 type GeneralResp struct {
 	ErrorCode int    `json:"error_code,omitempty"`
